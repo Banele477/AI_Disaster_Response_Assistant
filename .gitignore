@@ -1,5 +1,13 @@
-.env
-node_modules/
+# Python artifacts
 __pycache__/
 *.pyc
+venv/
+.env
+
+# Node.js artifacts
+node_modules/
+.next/
+dist/
+out/
+build/
 .DS_Store
