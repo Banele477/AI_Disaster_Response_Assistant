@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 import json
@@ -7,6 +8,15 @@ import os
 app = FastAPI(
     title="IBM Hackathon AI Disaster Response Routing Engine",
     version="1.1.0"
+)
+
+# 🌍 Crucial Update: Allow teammates' browsers to communicate securely across the network
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows requests from any laptop or mobile device on your Wi-Fi
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows POST, GET, OPTIONS requests
+    allow_headers=["*"],
 )
 
 class CrisisPayload(BaseModel):
@@ -22,14 +32,12 @@ def health_check():
 @app.post("/api/v1/crisis-response")
 async def handle_crisis_event(payload: CrisisPayload):
     try:
-        # Load structured shelter telemetry data dynamically
         shelter_file = "maps_module/mock_shelters.json"
         shelters: List[Dict[str, Any]] = []
         if os.path.exists(shelter_file):
             with open(shelter_file, "r") as f:
                 shelters = json.load(f)
         
-        # Simple closest-coordinate calculation mock (Simulating Spatial DB querying)
         target_shelter = shelters[0] if shelters else {
             "name": "Fallback Regional Emergency Center",
             "latitude": payload.latitude + 0.01,
@@ -37,7 +45,6 @@ async def handle_crisis_event(payload: CrisisPayload):
             "amenities": ["All Support Units"]
         }
 
-        # Interfacing with the initialized IBM Module baseline code
         from ai_module.app import get_granite_response
         ai_instructions = get_granite_response(payload.message, payload.language)
 
