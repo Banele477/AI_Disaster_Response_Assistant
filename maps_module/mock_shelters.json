@@ -1,0 +1,22 @@
+[
+  {
+    "id": "shelter-01",
+    "name": "Central Sports Complex Safe Zone",
+    "latitude": 28.6139,
+    "longitude": 77.2090,
+    "capacity_total": 500,
+    "capacity_available": 142,
+    "amenities": ["Medical supplies", "Clean Water", "Power Backup"],
+    "contact": "+91-11-23456789"
+  },
+  {
+    "id": "shelter-02",
+    "name": "Metro Station Ground Shelter",
+    "latitude": 28.6250,
+    "longitude": 77.2200,
+    "capacity_total": 300,
+    "capacity_available": 12,
+    "amenities": ["Rations", "First Aid"],
+    "contact": "+91-11-98765432"
+  }
+]

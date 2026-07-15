@@ -1,36 +1,62 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List, Dict, Any
+import json
+import os
 
-app = FastAPI(title="AI Disaster Response API")
+app = FastAPI(
+    title="IBM Hackathon AI Disaster Response Routing Engine",
+    version="1.1.0"
+)
 
-class CrisisRequest(BaseModel):
+class CrisisPayload(BaseModel):
     latitude: float
     longitude: float
     message: str
     language: Optional[str] = "English"
 
-@app.get("/")
-def read_root():
-    return {"status": "online", "project": "AI Disaster Response Assistant"}
+@app.get("/health")
+def health_check():
+    return {"status": "operational", "engine": "FastAPI + IBM Granite Stack"}
 
-@app.post("/api/respond")
-async def process_crisis(data: CrisisRequest):
+@app.post("/api/v1/crisis-response")
+async def handle_crisis_event(payload: CrisisPayload):
     try:
-        nearest_shelter = {
-            "name": "City Stadium Relief Center",
-            "lat": data.latitude + 0.012,
-            "lng": data.longitude - 0.008,
-            "distance_km": 1.5
+        # Load structured shelter telemetry data dynamically
+        shelter_file = "maps_module/mock_shelters.json"
+        shelters: List[Dict[str, Any]] = []
+        if os.path.exists(shelter_file):
+            with open(shelter_file, "r") as f:
+                shelters = json.load(f)
+        
+        # Simple closest-coordinate calculation mock (Simulating Spatial DB querying)
+        target_shelter = shelters[0] if shelters else {
+            "name": "Fallback Regional Emergency Center",
+            "latitude": payload.latitude + 0.01,
+            "longitude": payload.longitude - 0.01,
+            "amenities": ["All Support Units"]
         }
-        
-        ai_reply = f"[Mock Granite Response in {data.language}] Stay indoors away from glass. Move to your nearest shelter."
-        
+
+        # Interfacing with the initialized IBM Module baseline code
+        from ai_module.app import get_granite_response
+        ai_instructions = get_granite_response(payload.message, payload.language)
+
         return {
-            "status": "success",
-            "ai_instructions": ai_reply,
-            "nearest_shelter": nearest_shelter,
-            "emergency_kit_checklist": ["Water (3L)", "Flashlight", "First Aid Kit", "Battery Pack"]
+            "meta": {
+                "status": "processed",
+                "language_processed": payload.language
+            },
+            "dispatch": {
+                "instruction_set": ai_instructions,
+                "recommended_action": "Evacuate to designated safe structure immediately"
+            },
+            "routing": {
+                "origin_gps": {"lat": payload.latitude, "lng": payload.longitude},
+                "closest_facility": target_shelter
+            },
+            "manifest": {
+                "critical_supplies_needed": ["Water (3L per person)", "Dry Rations", "Radio", "First-Aid Pack"]
+            }
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Internal Core Processing Failure: {str(e)}")
